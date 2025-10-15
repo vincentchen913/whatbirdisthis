@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>What Is This Bird?</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root{--bg:#f7f7f9;--card:#fff;--text:#111;--muted:#666;--accent:#0d6efd}
+    *{box-sizing:border-box} body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text);margin:0}
+    .wrap{max-width:880px;margin:40px auto;padding:0 20px}
+    .card{background:var(--card);border:1px solid #e6e6ea;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.04)}
+    h1{margin:0 0 12px} .muted{color:var(--muted)}
+    .row{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+    .uploader{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
+    button{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:10px 16px;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    input[type="file"]{display:none}
+    .drop{border:2px dashed #d9d9e0;border-radius:14px;padding:18px;text-align:center;flex:1;min-width:260px;background:#fafafb}
+    .drop.drag{background:#eef5ff;border-color:#b8d3ff}
+    img{max-width:320px;max-height:320px;border-radius:12px;border:1px solid #eee}
+    table{border-collapse:collapse;width:100%;margin-top:8px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    progress{width:160px;height:10px}
+    .error{color:#b00020;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>What Is This Bird?</h1>
+    <p class="muted">Upload a photo to get top-k species predictions.</p>
+    <div class="card">
+      <div class="uploader">
+        <label for="file"><button id="pickBtn">Choose image</button></label>
+        <input id="file" type="file" accept="image/*">
+        <label class="muted">Top-k <input id="topk" type="number" min="1" max="10" value="5" style="width:60px"></label>
+        <label class="muted"><input id="tta" type="checkbox"> TTA</label>
+        <span id="status" class="muted"></span>
+      </div>
+
+      <div id="drop" class="drop">Or drag & drop an image here</div>
+
+      <div class="row" style="margin-top:14px;display:none" id="resultRow">
+        <div><img id="preview" alt="preview"></div>
+        <div style="flex:1;min-width:260px">
+          <div id="meta" class="muted" style="margin-bottom:6px"></div>
+          <table id="table"><tr><th>Species</th><th>Probability</th></tr></table>
+          <div class="error" id="error"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const fileInput = document.getElementById('file');
+const drop = document.getElementById('drop');
+const pickBtn = document.getElementById('pickBtn');
+const preview = document.getElementById('preview');
+const table = document.getElementById('table');
+const meta = document.getElementById('meta');
+const statusEl = document.getElementById('status');
+const errEl = document.getElementById('error');
+const resultRow = document.getElementById('resultRow');
+
+pickBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {e.preventDefault();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {e.preventDefault();drop.classList.remove('drag');}));
+drop.addEventListener('drop', e => {const f=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(f) handleFile(f);});
+
+async function handleFile(f){
+  if(!f) return;
+  errEl.textContent=''; table.innerHTML='<tr><th>Species</th><th>Probability</th></tr>';
+  resultRow.style.display='flex';
+  preview.src = URL.createObjectURL(f);
+  meta.textContent = 'Uploading & predicting…';
+  statusEl.textContent = '';
+
+  const form = new FormData();
+  form.append('file', f);
+  const topk = document.getElementById('topk').value || 5;
+  const tta = document.getElementById('tta').checked;
+
+  try{
+    const res = await fetch(`/predict?topk=${topk}&tta=${tta}`, {method:'POST', body:form});
+    if(!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    meta.textContent = `Model: ${data.model} · img_size=${data.img_size}`;
+    table.innerHTML = '<tr><th>Species</th><th>Probability</th></tr>' +
+      data.topk.map(r => `<tr><td>${r.label}</td><td>${(r.prob*100).toFixed(2)}%</td></tr>`).join('');
+    statusEl.textContent = 'Done';
+  }catch(err){
+    errEl.textContent = err.message || 'Prediction failed';
+    meta.textContent = '';
+  }
+}
+</script>
+</body>
+</html>
