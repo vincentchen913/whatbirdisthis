@@ -9,7 +9,7 @@ import torch, timm
 from torchvision import transforms
 from fastapi.staticfiles import StaticFiles
 
-CKPT_PATH = "artifacts/convnext_base.fb_in22k_ft_in1k_best.pt"  # <- point to your .pt
+CKPT_PATH = "artifacts/resnet18_best.pt"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 app = FastAPI(title="What Is This Bird")
