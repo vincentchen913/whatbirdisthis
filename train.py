@@ -14,7 +14,7 @@ import timm
 # ======== CONFIG (adjust as needed) ========
 DATA_DIR   = "cropped_data/"   # <- your cropped images
 OUT_DIR    = "artifacts"
-MODEL_NAME = "convnext_tiny.fb_in1k"     # good for fine-grained; try convnext_base too
+MODEL_NAME = "resnet18"     # good for fine-grained; try convnext_base too
 IMG_SIZE   = 288                    # 4060 Ti can handle 384–448 easily
 BATCH_SIZE = 16                     # use 32 if you have 8GB VRAM
 LR         = 3e-4

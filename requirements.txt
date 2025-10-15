@@ -5,3 +5,4 @@ torch
 timm
 torchvision
 python-multipart
+scikit-learn
