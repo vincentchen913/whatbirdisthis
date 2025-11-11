@@ -7,34 +7,41 @@
   <style>
     /* --- Minimal, clean, and accessible base --- */
     :root{
-      --bg: #f8f9fb;
+      --bg: #f6f9ff;
+      --bg-accent: radial-gradient(1200px 600px at 50% -10%, rgba(59,130,246,.12), transparent 60%),
+                   radial-gradient(800px 500px at 120% 10%, rgba(59,130,246,.08), transparent 55%),
+                   radial-gradient(700px 500px at -20% 30%, rgba(125,211,252,.10), transparent 55%);
       --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --line: #e5e7eb;
-      --accent: #0ea5e9; /* sky-500 */
+      --text: #0b1220;
+      --muted: #5b6b82;
+      --line: #e6eefc;
+      --accent: #3b82f6; /* blue-500 */
       --accent-ink: #ffffff;
-      --soft: 16px;
-      --radius: 14px;
-      --shadow: 0 6px 30px rgba(15, 23, 42, .06);
+      --soft: 18px;
+      --radius: 16px;
+      --shadow: 0 12px 40px rgba(59, 130, 246, .15);
     }
     @media (prefers-color-scheme: dark){
       :root{
-        --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --line:#1f2937; --accent:#38bdf8; --accent-ink:#06131f;
-        --shadow: 0 8px 30px rgba(0,0,0,.35);
+        --bg:#0b1220; 
+        --bg-accent: radial-gradient(1200px 600px at 50% -10%, rgba(59,130,246,.25), transparent 60%),
+                      radial-gradient(700px 500px at -20% 30%, rgba(56,189,248,.18), transparent 55%);
+        --card:#0f172a; --text:#ecf2ff; --muted:#9db1d1; --line:#1f2a44; --accent:#60a5fa; --accent-ink:#06131f;
+        --shadow: 0 16px 40px rgba(2,6,23,.6);
       }
+    }
     }
 
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{margin:0; font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); background-image: var(--bg-accent); color:var(--text)}
     body{margin:0; font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text)}
 
     .wrap{max-width:880px; margin:0 auto; padding:24px}
     header{max-width:720px; margin:64px auto 28px; text-align:center}
-    h1{margin:0 0 8px; font-size: clamp(28px, 4vw, 36px); letter-spacing:-0.02em}
+    h1{margin:0 0 8px; font-size: clamp(30px, 4.4vw, 40px); letter-spacing:-0.02em}
     .sub{color:var(--muted); margin:0}
 
-    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding: clamp(16px, 3vw, 22px)}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding: clamp(18px, 3.2vw, 24px); backdrop-filter:saturate(120%) blur(2px)}
 
     /* Controls row */
     .controls{display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin: 0 0 14px}
@@ -47,18 +54,29 @@
     .inline input[type="checkbox"]{width:18px; height:18px}
 
     /* Dropzone */
-    .drop{border:1.5px dashed var(--line); border-radius:var(--radius); background:linear-gradient(180deg, rgba(2,10,22,0.02), rgba(2,10,22,0.01)); padding:22px; text-align:center}
+    .drop{border:1.5px dashed var(--line); border-radius:var(--radius); background:linear-gradient(180deg, rgba(59,130,246,0.06), rgba(59,130,246,0.03)); padding:26px; text-align:center; position:relative; overflow:hidden}
+    .drop:before{content:""; position:absolute; inset:-20% -10%; background: radial-gradient(200px 90px at 20% 20%, rgba(59,130,246,.15), transparent 60%), radial-gradient(300px 120px at 80% 80%, rgba(125,211,252,.18), transparent 60%); pointer-events:none}
+    .drop.drag{background:rgba(191,219,254,.35); border-color:#93c5fd}
+    .drop .hint{color:var(--muted); margin-top:8px}
     .drop.drag{background:rgba(56,189,248,.08); border-color:#bae6fd}
     .drop .hint{color:var(--muted); margin-top:8px}
 
     /* Result area */
-    .result{display:none; gap:18px; align-items:flex-start; flex-wrap:wrap; margin-top:16px}
+    .result{display:none; gap:18px; align-items:flex-start; flex-wrap:wrap; margin-top:18px}
+    .shot img{max-width:340px; max-height:340px; border-radius:14px; border:1px solid var(--line); box-shadow:0 10px 24px rgba(2,6,23,.08)}
     .shot{flex:0 0 auto}
     .shot img{max-width:320px; max-height:320px; border-radius:12px; border:1px solid var(--line)}
     .panel{flex:1; min-width:260px}
     .meta{color:var(--muted); margin: 4px 0 10px}
 
     table{width:100%; border-collapse:collapse}
+    th,td{padding:12px 0; border-bottom:1px solid var(--line); text-align:left}
+    th{font-size:12px; color:#1e3a8a; letter-spacing:.3px; text-transform:uppercase}
+    .row{display:flex; align-items:center; gap:12px}
+    .bar{flex:1; height:8px; background:rgba(59,130,246,.16); border-radius:999px; overflow:hidden}
+    .bar > i{display:block; height:100%; width:0}
+    .label{min-width:44%}
+    .pct{font-variant-numeric: tabular-nums; min-width:66px; text-align:right}
     th,td{padding:10px 0; border-bottom:1px solid var(--line); text-align:left}
     th{font-size:13px; color:var(--muted); font-weight:600}
     .row{display:flex; align-items:center; gap:10px}
@@ -76,13 +94,34 @@
     /* Subtle motion */
     .fade-in{animation:fade .28s ease-out}
     @keyframes fade{from{opacity:0; transform:translateY(2px)} to{opacity:1; transform:translateY(0)}}
+    /* Modern header additions */
+    header{max-width:820px; margin:64px auto 28px; text-align:center; position:relative}
+    header .hero{display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:10px}
+    header .logo{width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #93c5fd, #3b82f6); display:grid; place-items:center; box-shadow:0 10px 24px rgba(59,130,246,.25)}
+    header .logo svg{filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+    .sub{color:var(--muted); margin:0}
+    .stickers{display:flex; gap:10px; justify-content:center; margin-top:14px; opacity:.9}
+    .sticker{padding:8px 10px; border:1px dashed var(--line); border-radius:999px; background:rgba(59,130,246,.06); font-size:12px; color:#1e3a8a}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>What Is This Bird?</h1>
-      <p class="sub">Upload a photo to get clean, minimal top‑k species predictions.</p>
+      <div class="hero">
+        <div class="logo" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 14c3-1 5-4 7-8 2 4 4 7 9 8-2 2-5 3-9 3s-5-1-7-3Z" fill="#fff"/>
+            <path d="M13 6c1 .5 2 1.6 2 2.8 0 1.2-.8 2.2-2 2.2s-2-.9-2-2.1C11 7.7 12 6.6 13 6Z" fill="#e0f2fe"/>
+          </svg>
+        </div>
+        <h1>What Is This Bird?</h1>
+      </div>
+      <p class="sub">A modern, lightweight interface with a brighter blue theme. Upload a photo to get top‑k species predictions.</p>
+      <div class="stickers" aria-hidden="true">
+        <span class="sticker">🪶 Feather‑light</span>
+        <span class="sticker">🐦 Bird‑smart</span>
+        <span class="sticker">💙 Blue‑tiful</span>
+      </div>
     </header>
 
     <section class="card fade-in" aria-labelledby="uploaderTitle">
@@ -104,10 +143,16 @@
       </div>
 
       <div id="drop" class="drop" tabindex="0" aria-label="Drop image here or paste from clipboard">
-        <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M6 20h12a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2h-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; position:relative; z-index:1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M6 20h12a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2h-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <strong>Drag & drop</strong> or click <em>Choose image</em>
+          <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" style="opacity:.25; transform:translateY(2px)">
+            <path d="M10 40c8-3 14-12 18-24 4 12 8 21 28 24-6 6-16 9-28 9S18 50 10 40Z" fill="#60a5fa"/>
+            <circle cx="34" cy="24" r="4" fill="#bfdbfe"/>
+          </svg>
         </div>
+        <p class="hint">JPEG/PNG/WebP · up to ~10MB</p>
+      </div>
         <p class="hint">JPEG/PNG/WebP · up to ~10MB</p>
       </div>
 
