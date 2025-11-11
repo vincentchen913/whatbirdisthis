@@ -1,99 +1,236 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>What Is This Bird?</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <style>
-    :root{--bg:#f7f7f9;--card:#fff;--text:#111;--muted:#666;--accent:#0d6efd}
-    *{box-sizing:border-box} body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text);margin:0}
-    .wrap{max-width:880px;margin:40px auto;padding:0 20px}
-    .card{background:var(--card);border:1px solid #e6e6ea;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.04)}
-    h1{margin:0 0 12px} .muted{color:var(--muted)}
-    .row{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-    .uploader{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
-    button{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:10px 16px;cursor:pointer}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    input[type="file"]{display:none}
-    .drop{border:2px dashed #d9d9e0;border-radius:14px;padding:18px;text-align:center;flex:1;min-width:260px;background:#fafafb}
-    .drop.drag{background:#eef5ff;border-color:#b8d3ff}
-    img{max-width:320px;max-height:320px;border-radius:12px;border:1px solid #eee}
-    table{border-collapse:collapse;width:100%;margin-top:8px}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
-    progress{width:160px;height:10px}
-    .error{color:#b00020;margin-top:8px}
+    /* --- Minimal, clean, and accessible base --- */
+    :root{
+      --bg: #f8f9fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e5e7eb;
+      --accent: #0ea5e9; /* sky-500 */
+      --accent-ink: #ffffff;
+      --soft: 16px;
+      --radius: 14px;
+      --shadow: 0 6px 30px rgba(15, 23, 42, .06);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --line:#1f2937; --accent:#38bdf8; --accent-ink:#06131f;
+        --shadow: 0 8px 30px rgba(0,0,0,.35);
+      }
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text)}
+
+    .wrap{max-width:880px; margin:0 auto; padding:24px}
+    header{max-width:720px; margin:64px auto 28px; text-align:center}
+    h1{margin:0 0 8px; font-size: clamp(28px, 4vw, 36px); letter-spacing:-0.02em}
+    .sub{color:var(--muted); margin:0}
+
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding: clamp(16px, 3vw, 22px)}
+
+    /* Controls row */
+    .controls{display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin: 0 0 14px}
+    .btn{appearance:none; background:var(--accent); color:var(--accent-ink); border:0; border-radius:12px; padding:10px 16px; cursor:pointer; font-weight:600; letter-spacing:.2px}
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+    .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+    .inline{color:var(--muted); display:flex; align-items:center; gap:8px}
+    .inline input[type="number"]{width:68px; padding:8px 10px; border:1px solid var(--line); background:transparent; color:inherit; border-radius:10px}
+    .inline input[type="checkbox"]{width:18px; height:18px}
+
+    /* Dropzone */
+    .drop{border:1.5px dashed var(--line); border-radius:var(--radius); background:linear-gradient(180deg, rgba(2,10,22,0.02), rgba(2,10,22,0.01)); padding:22px; text-align:center}
+    .drop.drag{background:rgba(56,189,248,.08); border-color:#bae6fd}
+    .drop .hint{color:var(--muted); margin-top:8px}
+
+    /* Result area */
+    .result{display:none; gap:18px; align-items:flex-start; flex-wrap:wrap; margin-top:16px}
+    .shot{flex:0 0 auto}
+    .shot img{max-width:320px; max-height:320px; border-radius:12px; border:1px solid var(--line)}
+    .panel{flex:1; min-width:260px}
+    .meta{color:var(--muted); margin: 4px 0 10px}
+
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:10px 0; border-bottom:1px solid var(--line); text-align:left}
+    th{font-size:13px; color:var(--muted); font-weight:600}
+    .row{display:flex; align-items:center; gap:10px}
+    .bar{flex:1; height:8px; background:rgba(56,189,248,.22); border-radius:999px; overflow:hidden}
+    .bar > i{display:block; height:100%; width:0}
+    .label{min-width:44%}
+    .pct{font-variant-numeric: tabular-nums; min-width:64px; text-align:right}
+
+    .status{color:var(--muted); font-size:14px}
+    .error{color:#ef4444; margin-top:8px}
+
+    /* Footer */
+    footer{max-width:720px; margin:18px auto 56px; text-align:center; color:var(--muted); font-size:13px}
+
+    /* Subtle motion */
+    .fade-in{animation:fade .28s ease-out}
+    @keyframes fade{from{opacity:0; transform:translateY(2px)} to{opacity:1; transform:translateY(0)}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>What Is This Bird?</h1>
-    <p class="muted">Upload a photo to get top-k species predictions.</p>
-    <div class="card">
-      <div class="uploader">
-        <label for="file"><button id="pickBtn">Choose image</button></label>
-        <input id="file" type="file" accept="image/*">
-        <label class="muted">Top-k <input id="topk" type="number" min="1" max="10" value="5" style="width:60px"></label>
-        <label class="muted"><input id="tta" type="checkbox"> TTA</label>
-        <span id="status" class="muted"></span>
+    <header>
+      <h1>What Is This Bird?</h1>
+      <p class="sub">Upload a photo to get clean, minimal top‑k species predictions.</p>
+    </header>
+
+    <section class="card fade-in" aria-labelledby="uploaderTitle">
+      <h2 id="uploaderTitle" style="position:absolute; left:-9999px;">Upload and predict</h2>
+
+      <div class="controls" role="group" aria-label="Prediction controls">
+        <label for="file"><button id="pickBtn" class="btn">Choose image</button></label>
+        <input id="file" type="file" accept="image/*" hidden>
+
+        <label class="inline">Top‑k
+          <input id="topk" type="number" min="1" max="10" value="5" inputmode="numeric" aria-label="Top k" />
+        </label>
+
+        <label class="inline">
+          <input id="tta" type="checkbox" aria-label="Use test-time augmentation"> TTA
+        </label>
+
+        <span id="status" class="status" aria-live="polite"></span>
       </div>
 
-      <div id="drop" class="drop">Or drag & drop an image here</div>
+      <div id="drop" class="drop" tabindex="0" aria-label="Drop image here or paste from clipboard">
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M6 20h12a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2h-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <strong>Drag & drop</strong> or click <em>Choose image</em>
+        </div>
+        <p class="hint">JPEG/PNG/WebP · up to ~10MB</p>
+      </div>
 
-      <div class="row" style="margin-top:14px;display:none" id="resultRow">
-        <div><img id="preview" alt="preview"></div>
-        <div style="flex:1;min-width:260px">
-          <div id="meta" class="muted" style="margin-bottom:6px"></div>
-          <table id="table"><tr><th>Species</th><th>Probability</th></tr></table>
-          <div class="error" id="error"></div>
+      <div class="result" id="resultRow">
+        <div class="shot"><img id="preview" alt="Selected preview" /></div>
+        <div class="panel">
+          <div id="meta" class="meta"></div>
+          <table id="table" aria-live="polite">
+            <tr><th>Species</th><th>Confidence</th></tr>
+          </table>
+          <div class="error" id="error" role="alert"></div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <footer>Built for fast, minimal workflows · Accessible, responsive, and clean</footer>
   </div>
 
 <script>
-const fileInput = document.getElementById('file');
-const drop = document.getElementById('drop');
-const pickBtn = document.getElementById('pickBtn');
-const preview = document.getElementById('preview');
-const table = document.getElementById('table');
-const meta = document.getElementById('meta');
-const statusEl = document.getElementById('status');
-const errEl = document.getElementById('error');
-const resultRow = document.getElementById('resultRow');
+  // Elements
+  const fileInput = document.getElementById('file');
+  const drop = document.getElementById('drop');
+  const pickBtn = document.getElementById('pickBtn');
+  const preview = document.getElementById('preview');
+  const table = document.getElementById('table');
+  const meta = document.getElementById('meta');
+  const statusEl = document.getElementById('status');
+  const errEl = document.getElementById('error');
+  const resultRow = document.getElementById('resultRow');
 
-pickBtn.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+  // Wire up controls
+  pickBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
 
-['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {e.preventDefault();drop.classList.add('drag');}));
-['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {e.preventDefault();drop.classList.remove('drag');}));
-drop.addEventListener('drop', e => {const f=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(f) handleFile(f);});
+  // Drag & drop
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {e.preventDefault(); drop.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {e.preventDefault(); drop.classList.remove('drag');}));
+  drop.addEventListener('drop', e => {
+    const f = [...e.dataTransfer.files].find(x => x.type && x.type.startsWith('image/'));
+    if (f) handleFile(f);
+  });
 
-async function handleFile(f){
-  if(!f) return;
-  errEl.textContent=''; table.innerHTML='<tr><th>Species</th><th>Probability</th></tr>';
-  resultRow.style.display='flex';
-  preview.src = URL.createObjectURL(f);
-  meta.textContent = 'Uploading & predicting…';
-  statusEl.textContent = '';
+  // Paste support for power users
+  drop.addEventListener('paste', e => {
+    const item = [...(e.clipboardData?.items||[])].find(i => i.type.startsWith('image/'));
+    if(item){ handleFile(item.getAsFile()); }
+  });
 
-  const form = new FormData();
-  form.append('file', f);
-  const topk = document.getElementById('topk').value || 5;
-  const tta = document.getElementById('tta').checked;
+  // Keyboard accessibility: Enter triggers file chooser
+  drop.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } });
 
-  try{
-    const res = await fetch(`/predict?topk=${topk}&tta=${tta}`, {method:'POST', body:form});
-    if(!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    meta.textContent = `Model: ${data.model} · img_size=${data.img_size}`;
-    table.innerHTML = '<tr><th>Species</th><th>Probability</th></tr>' +
-      data.topk.map(r => `<tr><td>${r.label}</td><td>${(r.prob*100).toFixed(2)}%</td></tr>`).join('');
-    statusEl.textContent = 'Done';
-  }catch(err){
-    errEl.textContent = err.message || 'Prediction failed';
-    meta.textContent = '';
+  async function handleFile(f){
+    if(!f) return;
+    clearUI();
+    resultRow.style.display = 'flex';
+
+    // Preview & meta
+    preview.src = URL.createObjectURL(f);
+    const sizeKB = (f.size/1024).toFixed(0);
+    meta.textContent = `${f.name} · ${sizeKB} KB`;
+    setStatus('Uploading & predicting…');
+
+    // Build form
+    const form = new FormData();
+    form.append('file', f);
+    const topk = document.getElementById('topk').value || 5;
+    const tta = document.getElementById('tta').checked;
+
+    try{
+      const res = await fetch(`/predict?topk=${encodeURIComponent(topk)}&tta=${encodeURIComponent(tta)}`, {method:'POST', body:form});
+      if(!res.ok) throw new Error(await res.text());
+
+      const data = await res.json();
+      meta.textContent = `Model: ${data.model} · img_size=${data.img_size}`;
+      renderTable(data.topk);
+      setStatus('Done');
+    }catch(err){
+      errEl.textContent = err.message || 'Prediction failed';
+      meta.textContent = '';
+      setStatus('');
+    }
   }
-}
+
+  function clearUI(){
+    errEl.textContent = '';
+    table.innerHTML = '<tr><th>Species</th><th>Confidence</th></tr>';
+  }
+
+  function setStatus(msg){ statusEl.textContent = msg; }
+
+  function renderTable(rows){
+    const html = rows.map(r => probabilityRow(r.label, r.prob)).join('');
+    table.insertAdjacentHTML('beforeend', html);
+    // Animate bars
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.bar > i').forEach(el => {
+        const w = el.getAttribute('data-w') || '0%';
+        el.style.transition = 'width .5s ease-out';
+        el.style.background = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        el.style.width = w;
+      });
+    });
+  }
+
+  function probabilityRow(label, prob){
+    const pct = (prob*100);
+    const pctStr = pct.toFixed(2) + '%';
+    const width = Math.max(2, Math.min(100, pct)).toFixed(2) + '%';
+    return `
+      <tr>
+        <td class="label">${escapeHTML(label)}</td>
+        <td>
+          <div class="row">
+            <div class="bar" aria-hidden="true"><i data-w="${width}"></i></div>
+            <div class="pct" aria-label="${escapeHTML(label)} confidence">${pctStr}</div>
+          </div>
+        </td>
+      </tr>`;
+  }
+
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
 </script>
 </body>
 </html>
